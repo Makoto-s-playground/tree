@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Recursive Sakura Tree</title>
+    <style>
+        body { margin: 0; background: #0f172a; overflow: hidden; font-family: sans-serif; }
+        #controls { position: absolute; top: 20px; left: 20px; color: white; background: rgba(0,0,0,0.5); padding: 15px; border-radius: 8px; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <div id="controls">
+        <label>Wind Intensity</label><br>
+        <input type="range" id="windSlider" min="0" max="5" step="0.1" value="1.5">
+    </div>
+    <canvas id="treeCanvas"></canvas>
+
+<script>
+    const canvas = document.getElementById('treeCanvas');
+    const ctx = canvas.getContext('2d');
+    const windSlider = document.getElementById('windSlider');
+    
+    let width, height, time = 0, growth = 0;
+
+    function resize() {
+        width = canvas.width = window.innerWidth;
+        height = canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    function drawTree(x, y, len, angle, depth) {
+        if (depth > growth) return;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.translate(x, y);
+        ctx.rotate(angle * Math.PI / 180);
+        
+        // Style: Trunk gets thinner and lighter as it goes up
+        ctx.strokeStyle = `hsl(25, 40%, ${20 + depth * 5}%)`;
+        ctx.lineWidth = 12 * Math.pow(0.7, depth);
+        
+        ctx.moveTo(0, 0);
+        ctx.lineTo(0, -len);
+        ctx.stroke();
+
+        // If at the tip of a branch, draw a blossom
+        if (depth >= 9) {
+            ctx.beginPath();
+            ctx.arc(0, -len, 4, 0, Math.PI * 2);
+            ctx.fillStyle = "#fda4af"; // Soft pink
+            ctx.fill();
+        }
+
+        if (depth < 10) {
+            const wind = parseFloat(windSlider.value) * Math.sin(time + depth * 0.5);
+            
+            // Recursive calls
+            drawTree(0, -len, len * 0.78, -20 + wind, depth + 1);
+            drawTree(0, -len, len * 0.78, 25 + wind, depth + 1);
+        }
+        ctx.restore();
+    }
+
+    function animate() {
+        ctx.clearRect(0, 0, width, height);
+        time += 0.02;
+        if (growth < 10) growth += 0.03;
+
+        drawTree(width / 2, height - 50, height / 5, 0, 0);
+        requestAnimationFrame(animate);
+    }
+
+    animate();
+</script>
+</body>
+</html>
